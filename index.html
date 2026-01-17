@@ -254,6 +254,14 @@
         <div style="text-align: right; margin-bottom: 20px;">
             <span id="userDisplay" style="color: #667eea; font-weight: 600; margin-left: 20px;"></span>
             <button id="logoutBtn" onclick="logout()" style="padding: 8px 16px; background-color: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; display: none;">התנתק</button>
+            <a href="/login.html" id="loginLink" style="display: none; margin-left: 10px;"><button style="padding: 8px 16px; background-color: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">כניסה</button></a>
+            <a href="/signup.html" id="signupLink" style="display: none; margin-left: 10px;"><button style="padding: 8px 16px; background-color: #51cf66; color: white; border: none; border-radius: 5px; cursor: pointer;">הרשמה</button></a>
+        </div>
+
+        <!-- Not Logged In Message -->
+        <div class="section" id="notLoggedInMessage" style="display: none; text-align: center; background: #fff3cd; border: 2px solid #ffc107;">
+            <h2 style="color: #856404;">⚠️ אתה אינך מחובר</h2>
+            <p style="color: #856404; font-size: 16px; margin-bottom: 20px;">כדי להשתמש בטופס וללא הצגת נתונים, אנא היכנס לחשבון או הרשם לחשבון חדש.</p>
         </div>
 
         <!-- Form Section -->
@@ -349,7 +357,14 @@
                 const data = await response.json();
 
                 if (!data.user) {
-                    window.location.href = '/login.html';
+                    // Show login and signup buttons
+                    document.getElementById('loginLink').style.display = 'inline-block';
+                    document.getElementById('signupLink').style.display = 'inline-block';
+                    // Show not logged in message
+                    document.getElementById('notLoggedInMessage').style.display = 'block';
+                    // Hide the form sections
+                    document.querySelector('.section:nth-child(2)').style.display = 'none';
+                    document.querySelector('.section:nth-child(3)').style.display = 'none';
                     return false;
                 }
 
@@ -359,7 +374,14 @@
                 loadData();
                 return true;
             } catch (error) {
-                window.location.href = '/login.html';
+                // Show login and signup buttons on error
+                document.getElementById('loginLink').style.display = 'inline-block';
+                document.getElementById('signupLink').style.display = 'inline-block';
+                // Show not logged in message
+                document.getElementById('notLoggedInMessage').style.display = 'block';
+                // Hide the form sections
+                document.querySelector('.section:nth-child(2)').style.display = 'none';
+                document.querySelector('.section:nth-child(3)').style.display = 'none';
                 return false;
             }
         }
