@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>טופס הרשמה</title>
+    <title>טופס וניהול נתונים</title>
     <style>
         * {
             margin: 0;
@@ -13,25 +13,31 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             padding: 20px;
+            min-height: 100vh;
         }
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
             background: white;
-            padding: 40px;
             border-radius: 10px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            max-width: 500px;
-            width: 100%;
+            padding: 30px;
+            margin-bottom: 30px;
         }
         h1 {
             color: #333;
             margin-bottom: 30px;
             text-align: center;
             font-size: 28px;
+        }
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
         }
         .form-group {
             margin-bottom: 20px;
@@ -62,11 +68,14 @@
             resize: vertical;
             min-height: 100px;
         }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
         button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 12px 30px;
             border: none;
             border-radius: 5px;
             font-size: 16px;
@@ -74,12 +83,35 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        button:hover {
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+        .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        button:active {
-            transform: translateY(0);
+        .btn-refresh {
+            background-color: #4c6ef5;
+            color: white;
+        }
+        .btn-export {
+            background-color: #51cf66;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .btn-view {
+            background-color: #667eea;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
         }
         .message {
             margin-top: 20px;
@@ -109,43 +141,199 @@
         .loading.show {
             display: block;
         }
+        .stats {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: right;
+            font-weight: 600;
+            border: none;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #333;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 18px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .modal-header h2 {
+            color: #333;
+            border: none;
+            margin: 0;
+        }
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .close:hover {
+            color: #333;
+        }
+        .field {
+            margin-bottom: 15px;
+        }
+        .field-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .field-value {
+            color: #333;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            word-break: break-word;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>טופס הרשמה</h1>
-        <form id="form">
-            <div class="form-group">
-                <label for="name">שם מלא *</label>
-                <input type="text" id="name" name="name" required>
+        <h1>📋 טופס וניהול נתונים</h1>
+
+        <!-- Form Section -->
+        <div class="section">
+            <h2>✍️ הוספת נתונים חדשים</h2>
+            <div class="form-container">
+                <form id="form">
+                    <div class="form-group">
+                        <label for="name">שם מלא *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">דוא"ל *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">טלפון</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">הודעה</label>
+                        <textarea id="message" name="message"></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-submit">שלח</button>
+                    </div>
+                    <div class="loading" id="loading">שולח נתונים...</div>
+                    <div class="message" id="formMessage"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Data Display Section -->
+        <div class="section">
+            <h2>📊 כל הנתונים</h2>
+            <div class="stats" id="stats">טוען נתונים...</div>
+
+            <div class="button-group">
+                <button class="btn-refresh" onclick="loadData()">🔄 רענן</button>
+                <button class="btn-export" onclick="exportToCSV()">📥 הורד כ-CSV</button>
             </div>
 
-            <div class="form-group">
-                <label for="email">דוא"ל *</label>
-                <input type="email" id="email" name="email" required>
+            <div class="table-wrapper">
+                <table id="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>שם</th>
+                            <th>דוא"ל</th>
+                            <th>טלפון</th>
+                            <th>תאריך</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody">
+                        <tr>
+                            <td colspan="6" class="no-data">טוען נתונים...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+        </div>
+    </div>
 
-            <div class="form-group">
-                <label for="phone">טלפון</label>
-                <input type="tel" id="phone" name="phone">
+    <!-- Modal for viewing details -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>פרטי הטופס</h2>
+                <button class="close" onclick="closeModal()">&times;</button>
             </div>
-
-            <div class="form-group">
-                <label for="message">הודעה</label>
-                <textarea id="message" name="message"></textarea>
-            </div>
-
-            <button type="submit">שלח</button>
-            <div class="loading" id="loading">שולח נתונים...</div>
-            <div class="message" id="message"></div>
-        </form>
+            <div id="modalBody"></div>
+        </div>
     </div>
 
     <script>
         const form = document.getElementById('form');
-        const messageDiv = document.getElementById('message');
+        const messageDiv = document.getElementById('formMessage');
         const loadingDiv = document.getElementById('loading');
 
+        // Handle Form Submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             messageDiv.style.display = 'none';
@@ -174,6 +362,7 @@
                     messageDiv.className = 'message success';
                     messageDiv.textContent = '✓ הנתונים נשלחו בהצלחה!';
                     form.reset();
+                    setTimeout(() => loadData(), 500);
                 } else {
                     messageDiv.className = 'message error';
                     messageDiv.textContent = '✗ שגיאה: ' + data.error;
@@ -186,6 +375,147 @@
                 messageDiv.style.display = 'block';
             }
         });
+
+        let allData = [];
+
+        // Load and Display Data
+        function loadData() {
+            fetch('/api/submissions')
+                .then(res => res.json())
+                .then(data => {
+                    allData = data;
+                    displayData(data);
+                })
+                .catch(err => {
+                    console.error('שגיאה:', err);
+                    document.getElementById('tbody').innerHTML = 
+                        '<tr><td colspan="6" class="no-data">שגיאה בטעינת הנתונים</td></tr>';
+                });
+        }
+
+        function displayData(data) {
+            const tbody = document.getElementById('tbody');
+            const stats = document.getElementById('stats');
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">אין טפסים עדיין 📭</td></tr>';
+                stats.textContent = 'סה"כ טפסים: 0';
+                return;
+            }
+
+            stats.textContent = `סה"כ טפסים: ${data.length}`;
+
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td>#${item.id}</td>
+                    <td><strong>${escapeHtml(item.name)}</strong></td>
+                    <td>${escapeHtml(item.email)}</td>
+                    <td>${item.phone || '-'}</td>
+                    <td>${formatDate(item.created_at)}</td>
+                    <td>
+                        <button class="btn-view" onclick="viewDetails(${item.id})">צפה</button>
+                        <button class="btn-delete" onclick="deleteSubmission(${item.id})">מחק</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('he-IL');
+        }
+
+        function viewDetails(id) {
+            const item = allData.find(d => d.id === id);
+            if (!item) return;
+
+            const modal = document.getElementById('modal');
+            const modalBody = document.getElementById('modalBody');
+
+            modalBody.innerHTML = `
+                <div class="field">
+                    <div class="field-label">🔢 ID</div>
+                    <div class="field-value">#${item.id}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">👤 שם</div>
+                    <div class="field-value">${escapeHtml(item.name)}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">📧 דוא"ל</div>
+                    <div class="field-value"><a href="mailto:${escapeHtml(item.email)}">${escapeHtml(item.email)}</a></div>
+                </div>
+                <div class="field">
+                    <div class="field-label">📱 טלפון</div>
+                    <div class="field-value">${item.phone || 'לא צוין'}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">💬 הודעה</div>
+                    <div class="field-value">${escapeHtml(item.message) || 'לא צוין'}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">📅 תאריך</div>
+                    <div class="field-value">${formatDate(item.created_at)}</div>
+                </div>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        function deleteSubmission(id) {
+            if (!confirm('האם אתה בטוח שברצונך למחוק את הטופס הזה?')) return;
+
+            fetch(`/api/submissions/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    alert('הטופס נמחק בהצלחה');
+                    loadData();
+                })
+                .catch(err => alert('שגיאה במחיקה: ' + err.message));
+        }
+
+        function exportToCSV() {
+            if (allData.length === 0) {
+                alert('אין נתונים לייצא');
+                return;
+            }
+
+            let csv = 'ID,שם,דוא"ל,טלפון,הודעה,תאריך\n';
+            csv += allData.map(item => 
+                `"${item.id}","${escapeCSV(item.name)}","${escapeCSV(item.email)}","${escapeCSV(item.phone || '')}","${escapeCSV(item.message || '')}","${formatDate(item.created_at)}"`
+            ).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `טפסים-${new Date().toISOString().split('T')[0]}.csv`);
+            link.click();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeCSV(text) {
+            if (!text) return '';
+            return text.replace(/"/g, '""');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+
+        // Load data on page load
+        loadData();
     </script>
 </body>
 </html>
