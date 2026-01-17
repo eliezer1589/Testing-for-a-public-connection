@@ -260,6 +260,16 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+// Signup page
+app.get('/signup.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'signup.html'));
+});
+
+// Login page
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
+});
+
 // Start Server
 app.listen(PORT, () => {
     console.log(`
