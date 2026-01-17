@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול טפסים</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .stats {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: right;
+            font-weight: 600;
+            border: none;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #333;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn-delete {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        .btn-delete:hover {
+            background-color: #ff5252;
+            transform: scale(1.05);
+        }
+        .btn-view {
+            background-color: #667eea;
+            color: white;
+        }
+        .btn-view:hover {
+            background-color: #5568d3;
+            transform: scale(1.05);
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 18px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .modal-header h2 {
+            color: #333;
+        }
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .close:hover {
+            color: #333;
+        }
+        .field {
+            margin-bottom: 15px;
+        }
+        .field-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .field-value {
+            color: #333;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            word-break: break-word;
+        }
+        .export-btn {
+            background-color: #51cf66;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .export-btn:hover {
+            background-color: #40c057;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 ניהול טפסים</h1>
+        <div class="stats" id="stats">טוען נתונים...</div>
+
+        <div class="action-buttons">
+            <button class="export-btn" onclick="exportToCSV()">📥 הורד כ-CSV</button>
+            <button class="export-btn" onclick="refreshData()" style="background-color: #4c6ef5;">🔄 רענן</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>שם</th>
+                        <th>דוא"ל</th>
+                        <th>טלפון</th>
+                        <th>תאריך</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                    <tr class="loading">
+                        <td colspan="6">טוען נתונים...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for viewing details -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>פרטי הטופס</h2>
+                <button class="close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        let allData = [];
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('he-IL');
+        }
+
+        function loadData() {
+            fetch('/api/submissions')
+                .then(res => res.json())
+                .then(data => {
+                    allData = data;
+                    displayData(data);
+                })
+                .catch(err => {
+                    console.error('שגיאה:', err);
+                    document.getElementById('tbody').innerHTML = 
+                        '<tr><td colspan="6" class="no-data">שגיאה בטעינת הנתונים</td></tr>';
+                });
+        }
+
+        function displayData(data) {
+            const tbody = document.getElementById('tbody');
+            const stats = document.getElementById('stats');
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">אין טפסים עדיין 📭</td></tr>';
+                stats.textContent = 'סה"כ טפסים: 0';
+                return;
+            }
+
+            stats.textContent = `סה"כ טפסים: ${data.length}`;
+
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td>#${item.id}</td>
+                    <td><strong>${escapeHtml(item.name)}</strong></td>
+                    <td>${escapeHtml(item.email)}</td>
+                    <td>${item.phone || '-'}</td>
+                    <td>${formatDate(item.created_at)}</td>
+                    <td>
+                        <button class="btn btn-view" onclick="viewDetails(${item.id})">צפה</button>
+                        <button class="btn btn-delete" onclick="deleteSubmission(${item.id})">מחק</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewDetails(id) {
+            const item = allData.find(d => d.id === id);
+            if (!item) return;
+
+            const modal = document.getElementById('modal');
+            const modalBody = document.getElementById('modalBody');
+
+            modalBody.innerHTML = `
+                <div class="field">
+                    <div class="field-label">🔢 ID</div>
+                    <div class="field-value">#${item.id}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">👤 שם</div>
+                    <div class="field-value">${escapeHtml(item.name)}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">📧 דוא"ל</div>
+                    <div class="field-value"><a href="mailto:${escapeHtml(item.email)}">${escapeHtml(item.email)}</a></div>
+                </div>
+                <div class="field">
+                    <div class="field-label">📱 טלפון</div>
+                    <div class="field-value">${item.phone || 'לא צוין'}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">💬 הודעה</div>
+                    <div class="field-value">${escapeHtml(item.message) || 'לא צוין'}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">📅 תאריך</div>
+                    <div class="field-value">${formatDate(item.created_at)}</div>
+                </div>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        function deleteSubmission(id) {
+            if (!confirm('האם אתה בטוח שברצונך למחוק את הטופס הזה?')) return;
+
+            fetch(`/api/submissions/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    alert('הטופס נמחק בהצלחה');
+                    loadData();
+                })
+                .catch(err => alert('שגיאה במחיקה: ' + err.message));
+        }
+
+        function refreshData() {
+            loadData();
+            alert('הנתונים רוענו');
+        }
+
+        function exportToCSV() {
+            if (allData.length === 0) {
+                alert('אין נתונים לייצא');
+                return;
+            }
+
+            let csv = 'ID,שם,דוא"ל,טלפון,הודעה,תאריך\n';
+            csv += allData.map(item => 
+                `"${item.id}","${escapeCSV(item.name)}","${escapeCSV(item.email)}","${escapeCSV(item.phone || '')}","${escapeCSV(item.message || '')}","${formatDate(item.created_at)}"`
+            ).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `טפסים-${new Date().toISOString().split('T')[0]}.csv`);
+            link.click();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeCSV(text) {
+            if (!text) return '';
+            return text.replace(/"/g, '""');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
