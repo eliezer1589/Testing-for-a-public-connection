@@ -17,11 +17,11 @@ app.use(express.static(path.join(__dirname)));
 
 // Session Middleware
 app.use(session({
-    secret: 'your-secret-key-change-this-in-production',
+    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this-in-production',
     resave: false,
     saveUninitialized: true,
     cookie: { 
-        secure: false,
+        secure: process.env.NODE_ENV === 'production' ? true : false,
         maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
     }
 }));
