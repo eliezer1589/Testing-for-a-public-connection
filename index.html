@@ -250,6 +250,11 @@
 <body>
     <div class="container">
         <h1>📋 טופס וניהול נתונים</h1>
+        
+        <div style="text-align: right; margin-bottom: 20px;">
+            <span id="userDisplay" style="color: #667eea; font-weight: 600; margin-left: 20px;"></span>
+            <button id="logoutBtn" onclick="logout()" style="padding: 8px 16px; background-color: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; display: none;">התנתק</button>
+        </div>
 
         <!-- Form Section -->
         <div class="section">
@@ -329,14 +334,46 @@
     </div>
 
     <script>
+        let allData = [];
         const form = document.getElementById('form');
-        const messageDiv = document.getElementById('formMessage');
+        const formMessageDiv = document.getElementById('formMessage');
         const loadingDiv = document.getElementById('loading');
+
+        // Check if user is logged in on page load
+        window.addEventListener('load', checkAuth);
+
+        // Check if user is logged in
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/user');
+                const data = await response.json();
+
+                if (!data.user) {
+                    window.location.href = '/login.html';
+                    return false;
+                }
+
+                // Display user info
+                document.getElementById('userDisplay').textContent = `🙋 ברוך הבא, ${data.user.name}!`;
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                loadData();
+                return true;
+            } catch (error) {
+                window.location.href = '/login.html';
+                return false;
+            }
+        }
+
+        // Logout
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        }
 
         // Handle Form Submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            messageDiv.style.display = 'none';
+            formMessageDiv.style.display = 'none';
             loadingDiv.classList.add('show');
 
             const formData = {
@@ -359,20 +396,20 @@
                 loadingDiv.classList.remove('show');
 
                 if (response.ok) {
-                    messageDiv.className = 'message success';
-                    messageDiv.textContent = '✓ הנתונים נשלחו בהצלחה!';
+                    formMessageDiv.className = 'message success';
+                    formMessageDiv.textContent = '✓ הנתונים נשלחו בהצלחה!';
                     form.reset();
                     setTimeout(() => loadData(), 500);
                 } else {
-                    messageDiv.className = 'message error';
-                    messageDiv.textContent = '✗ שגיאה: ' + data.error;
+                    formMessageDiv.className = 'message error';
+                    formMessageDiv.textContent = '✗ שגיאה: ' + data.error;
                 }
-                messageDiv.style.display = 'block';
+                formMessageDiv.style.display = 'block';
             } catch (error) {
                 loadingDiv.classList.remove('show');
-                messageDiv.className = 'message error';
-                messageDiv.textContent = '✗ שגיאה בחיבור: ' + error.message;
-                messageDiv.style.display = 'block';
+                formMessageDiv.className = 'message error';
+                formMessageDiv.textContent = '✗ שגיאה בחיבור: ' + error.message;
+                formMessageDiv.style.display = 'block';
             }
         });
 
